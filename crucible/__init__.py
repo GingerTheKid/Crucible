@@ -3,6 +3,11 @@ from abc import ABC, abstractmethod
 from crucible.senses import Sense
 
 class Entity(ABC):
+    """
+    Abstract base class for all D&D entities. Defines all shared attributes of D&D entitites (stats, skills, etc.) and
+    basic frameworks to support common functionality.
+
+    """
     def __init__(self, name='Entity', size='medium', num_hit_dice=1, skill_prof=None):
         self.name = name
 
@@ -13,7 +18,7 @@ class Entity(ABC):
 
         self._stats = [10, 10, 10, 10, 10, 10]
         self.skills = dict()
-        self.add_skills()
+        self._add_skills()
 
         self.prof_bonus = int(2)
 
@@ -25,7 +30,8 @@ class Entity(ABC):
 
         self.passive_perception = 10 + self.skill_mod('perception')
         self.senses = [Sense("passive Perception", "{:d}".format(self.passive_perception))]
-        self._actions = []
+        self.abilities = []
+        self.actions = []
 
     @property
     def strength(self):
@@ -109,7 +115,10 @@ class Entity(ABC):
     def speed(self, new_val):
         self._speed = new_val
 
-    def add_skills(self):
+    def _add_skills(self):
+        """
+        Adds base skills to entity during construction
+        """
         self.skills['acrobatics'] = ('dexterity', False)
         self.skills['animal_handling'] = ('wisdom', False)
         self.skills['arcana'] = ('intelligence', False)
@@ -129,15 +138,46 @@ class Entity(ABC):
         self.skills['survival'] = ('wisdom', False)
 
     def stat_mod(self, stat_name):
+        """
+        Calculate stat modifier for entity
+        :param stat_name: str, desired stat
+        :return: float (?) of stat modifier
+        """
         stat_val = self.__getattribute__(stat_name)
         return floor((stat_val - 10) / 2)
 
     def skill_mod(self, skill_name):
+        """
+        Calculate skill modifier for entity, taking into account base stat and proficiency
+        :param skill_name: str, desired skill
+        :return: float of skill modifier
+        """
         this_skill = self.skills[skill_name]
         return self.stat_mod(this_skill[0]) + this_skill[1] * self.prof_bonus
 
     def add_sense(self, new_sense):
+        """
+        Add additional sense (e.g. darkvision) to entity sense list
+        :param new_sense:
+        """
         self.senses.insert(-1, new_sense)
+
+    def add_ability(self, *args):
+        """
+        Add additional ability (e.g. Fey Ancestry, Spellcasting) to entity ability list
+        :param new_ability:
+        """
+        for ability in args:
+            self.abilities.append(ability)
+
+    def add_action(self, *args):
+        """
+        Add additional action (e.g. melee attack) to entity action list
+        :param args:
+        :return:
+        """
+        for action in args:
+            self.actions.append(action)
 
     @abstractmethod
     def print_block(self):
